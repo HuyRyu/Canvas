@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<!-- saved from url=(0042)https://huyryu.github.io/1312259/ -->
+<html>
+	<head>
+		<script>
+		window.requestAnimFrame = (function(callback)
+	{
+		return window.requestAnimationFrame ||
+		window.webkitRequestAnimationFrame ||
+		window.mozRequestAnimationFrame ||
+		window.oRequestAnimationFrame ||
+		window.msRequestAnimationFrame ||
+		function(callback)
+		{
+			window.setTimeout(callback, 1000 / 60);
+		};
+	})	();
+
+	function drawFrame_Gaussian(canvas, context, video)
+	{
+		context.drawImage(video, 0, 0);				
+		var sum1, sum2, sum3;		
+		var v_height = 360;
+		var v_width  = 640;
+		var step = 1920;
+		var channels = 3;
+		
+		var kernel_width = 5;
+		var kernel_height = 5;
+
+		var kernel_center_x = 2;
+		var kernel_center_y = 2;
+
+		var G= new Array(25);
+
+		G = [0.0036,0.0146,0.0256,0.0146,0.0036,
+		     0.0146,0.0586,0.0952,0.0586,0.0146,
+              	     0.0256,0.0952,0.1501,0.0952,0.0256,
+                     0.0146,0.0586,0.0952,0.0586,0.0146,
+		     0.0036,0.0146,0.0256,0.0146,0.0036,
+                    ];
+		
+		var imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+		var data = imageData.data;
+				
+		context.drawImage(video, 0, 0);
+		var imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+		var data = imageData.data;
+		for (var i = 0; i < v_height; i++) 
+		{
+			for(var j = 0; j<v_width;j++)
+			{
+				sum1=sum2=sum3=0;
+				for(var ii=0;ii<kernel_height;ii++)
+				{
+					for(var jj=0;jj<kernel_width;jj++)
+					{
+						if(i+ii-kernel_center_y>=0 & i+ii-kernel_center_y<=v_height & j+jj-kernel_center_x>=0 & j+jj-kernel_center_x<=v_width)
+						{
+							sum1+=G[ii*kernel_width+jj]*data[(i-kernel_center_x+ii)*step+(j-kernel_center_y+jj)*channels];
+							sum2+=G[ii*kernel_width+jj]*data[(i-kernel_center_x+ii)*step+(j-kernel_center_y+jj)*channels+1];
+							sum3+=G[ii*kernel_width+jj]*data[(i-kernel_center_x+ii)*step+(j-kernel_center_y+jj)*channels+2];
+						}
+					}
+				}
+			data[i*step+j*channels] = sum1; 
+			data[i*step+j*channels+1] = sum2; 
+			data[i*step+j*channels+2] = sum3; 
+			}
+		}
+		// overwrite original image
+		context.putImageData(imageData, 0, 0);
+		requestAnimFrame(function()
+		{
+			drawFrame_Gaussian(canvas, context, video);
+		});
+
+		
+	}
+	window.onload = function()
+	{			
+		var canvas = document.getElementById("myCanvas");
+		var context = canvas.getContext("2d");
+		var video = document.getElementById("myVideo");
+		drawFrame_Gaussian(canvas, context, video);		
+	}
+		</script>
+		</head>
+	<body>
+	<video id = "myVideo" controls="" loop="" width="640" height="360">
+		<source src = "myvideo.mp4" type="video/mp4"/>
+		</video>
+		<canvas id="myCanvas" width="640" height="360" style = "border:1px solid black";></canvas>
+		</body>
+		</html>

@@ -1,95 +1,159 @@
-<!DOCTYPE html>
-<!-- saved from url=(0042)https://huyryu.github.io/1312259/ -->
 <html>
 	<head>
 		<script>
-		window.requestAnimFrame = (function(callback)
-	{
-		return window.requestAnimationFrame ||
-		window.webkitRequestAnimationFrame ||
-		window.mozRequestAnimationFrame ||
-		window.oRequestAnimationFrame ||
-		window.msRequestAnimationFrame ||
-		function(callback)
+		window.onload = function(){
+		startGame();
+		}
+		function startGame() {
+		init_array();
+		random();
+		createComponent ();
+    //Hàm startGame() gọi đến method start() của đối tượng myGameArea
+		myGameArea.start();
+		
+		
+};
+	var flag = 0;
+	var core = 0;
+	var arr = new Array(4);
+		function init_array(){
+			for(var i=0;i<4;i++)
+				arr[i] = new Array(0,0,0,0);
+		}
+	var myGamePiece = new Array(16);
+		function createComponent()
 		{
-			window.setTimeout(callback, 1000 / 60);
+			for(var x=0;x<4;x++)
+				for(var y=0;y<4;y++)
+				{	
+					if (arr[x][y] == 0)
+						component(64,64,"0.png",x+x*64+2,y+y*64+2,"image");
+					if (arr[x][y] == 2)
+						component(64,64,"2.png",x+x*64+2,y+y*64+2,"image");
+					if (arr[x][y] == 4)
+						component(64,64,"4.png",x+x*64+2,y+y*64+2,"image");
+					if (arr[x][y] == 8)
+						component(64,64,"8.png",x+x*64+2,y+y*64+2,"image");
+					if (arr[x][y] == 16)
+						component(64,64,"16.png",x+x*64+2,y+y*64+2,"image");
+					if (arr[x][y] == 32)
+						component(64,64,"32.png",x+x*64+2,y+y*64+2,"image");
+				}
+		}
+	var myGameArea = {
+   
+		start : function() {
+			var canvas = document.getElementById("mycanvas");
+
+			// nội dung bên trong của vùng không gian này là các thứ được vẽ từ đối tượng getContext("2d")
+			this.context = canvas.getContext("2d");		
+			if(flag == 1)
+				this.interval = setInterval(updateGame,5000);
+		},
+		clear : function(){
+			this.context.clearRect(0,0,600,600);
+			flag = 0;
+		}
+		
+	}
+	function random(){
+		var x = Math.floor(Math.random()*4);
+		var y = Math.floor(Math.random()*4);
+		while(arr[x][y] !=0){
+			var x = Math.floor(Math.random()*4);
+			var y = Math.floor(Math.random()*4);
+			}
+		arr[x][y] = 2;
+	}
+	function component(width, height, src, x, y,type) {
+		this.width = width;
+		this.height = height;
+		this.x = x;
+		this.y = y;
+		var img = new Image();
+		img.onload = function(){
+			ctx = myGameArea.context;
+			ctx.drawImage(img,y,x);
 		};
-	})	();
-
-	function drawFrame_Gaussian(canvas, context, video)
-	{
-		context.drawImage(video, 0, 0);				
-		var sum1, sum2, sum3;		
-		var v_height = 360;
-		var v_width  = 640;
-		var step = 1920;
-		var channels = 3;
+		img.src = src;	
+	}
+	function updateGame(){
 		
-		var kernel_width = 5;
-		var kernel_height = 5;
-
-		var kernel_center_x = 2;
-		var kernel_center_y = 2;
-
-		var G= new Array(25);
-
-		G = [0.0036,0.0146,0.0256,0.0146,0.0036,
-		     0.0146,0.0586,0.0952,0.0586,0.0146,
-              	     0.0256,0.0952,0.1501,0.0952,0.0256,
-                     0.0146,0.0586,0.0952,0.0586,0.0146,
-		     0.0036,0.0146,0.0256,0.0146,0.0036,
-                    ];
-		
-		var imageData = context.getImageData(0, 0, canvas.width, canvas.height);
-		var data = imageData.data;
-				
-		context.drawImage(video, 0, 0);
-		var imageData = context.getImageData(0, 0, canvas.width, canvas.height);
-		var data = imageData.data;
-		for (var i = 0; i < v_height; i++) 
-		{
-			for(var j = 0; j<v_width;j++)
-			{
-				sum1=sum2=sum3=0;
-				for(var ii=0;ii<kernel_height;ii++)
-				{
-					for(var jj=0;jj<kernel_width;jj++)
+		random();
+		createComponent();
+	}
+	function moveleft(){
+		for(var x = 0;x<4;x++)
+				for(var y = 0;y<4;y++)
+					for(var j = y+1;j<4;j++)
 					{
-						if(i+ii-kernel_center_y>=0 & i+ii-kernel_center_y<=v_height & j+jj-kernel_center_x>=0 & j+jj-kernel_center_x<=v_width)
-						{
-							sum1+=G[ii*kernel_width+jj]*data[(i-kernel_center_x+ii)*step+(j-kernel_center_y+jj)*channels];
-							sum2+=G[ii*kernel_width+jj]*data[(i-kernel_center_x+ii)*step+(j-kernel_center_y+jj)*channels+1];
-							sum3+=G[ii*kernel_width+jj]*data[(i-kernel_center_x+ii)*step+(j-kernel_center_y+jj)*channels+2];
-						}
+						if((arr[x][y] == arr[x][j] || arr[x][y] == 0) && arr[x][j]!=0)
+							{
+								arr[x][y]+=arr[x][j];
+								arr[x][j] = 0;
+								core+=arr[x][y];
+								break;
+							}
+					}
+		random();
+		createComponent();
+	}
+	function moveright(){
+		for(var x = 0;x<4;x++)
+			{
+				for(var y = 3;y>=0;y--)
+				{
+					for(var j = y-1;j>=0;j--)
+					{
+						if((arr[x][y] == arr[x][j] || arr[x][y] == 0) && arr[x][j]!=0)
+							{
+								arr[x][y]+=arr[x][j];
+								arr[x][j] = 0;
+								core+=arr[x][y];
+								break;
+							}
 					}
 				}
-			data[i*step+j*channels] = sum1; 
-			data[i*step+j*channels+1] = sum2; 
-			data[i*step+j*channels+2] = sum3; 
 			}
-		}
-		// overwrite original image
-		context.putImageData(imageData, 0, 0);
-		requestAnimFrame(function()
-		{
-			drawFrame_Gaussian(canvas, context, video);
-		});
-
-		
+		random();
+		createComponent();
 	}
-	window.onload = function()
-	{			
-		var canvas = document.getElementById("myCanvas");
-		var context = canvas.getContext("2d");
-		var video = document.getElementById("myVideo");
-		drawFrame_Gaussian(canvas, context, video);		
+	function moveup(){
+		for(var y = 0;y<4;y++)
+				for(var x = 0;x<4;x++)
+					for(var j = x+1;j<4;j++)
+					{
+						if((arr[x][y] == arr[j][y] || arr[x][y] == 0) && arr[j][y]!=0)
+							{
+								arr[x][y]+=arr[j][y];
+								arr[j][y] = 0;
+								core+=arr[x][y];
+								break;
+							}
+					}
+		random();
+		createComponent();
 	}
-		</script>
-		</head>
-	<body>
-	<video id = "myVideo" controls="" loop="" width="640" height="360">
-		<source src = "myvideo.mp4" type="video/mp4"/>
-		</video>
-		<canvas id="myCanvas" width="640" height="360" style = "border:1px solid black";></canvas>
-		</body>
-		</html>
+	function movedown(){
+		for(var y = 0;y<4;y++)
+				for(var x = 3;x>=0;x--)
+					for(var j = x-1;j>=0;j--)
+					{
+						if((arr[x][y] == arr[j][y] || arr[x][y] == 0) && arr[j][y]!=0)
+							{
+								arr[x][y]+=arr[j][y];
+								arr[j][y] = 0;
+								core+=arr[x][y];
+								break;
+							}
+					}
+		random();
+		createComponent();
+	}
+		</script>	
+<button onclick="moveup()">UP</button>
+<button onclick="movedown()">DOWN</button>
+<button onclick="moveleft()">LEFT</button>
+<button onclick="moveright()">RIGHT</button>
+	<body><canvas id = "mycanvas" width = "600" height = "600"></canvas></body>
+	</head></html>

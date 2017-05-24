@@ -135,6 +135,10 @@
 			stt.update();
 			setTimeout(newGame,2000);
 		}
+		if(endGame() == 3){
+			stt =new component(0,0,"You win",350,150,"text");
+			setTimeout(newGame,2000);
+		}
 		flag = 0;
 	}
 	function moveright(){
@@ -185,6 +189,10 @@
 		if(endGame() == 0){
 			stt =new component(0,0,"Can't move",350,150,"text");
 			stt.update();
+			setTimeout(newGame,2000);
+		}
+		if(endGame() == 3){
+			stt =new component(0,0,"You win",350,150,"text");
 			setTimeout(newGame,2000);
 		}
 		flag = 0;
@@ -240,6 +248,10 @@
 			stt =new component(0,0,"Can't move",350,150,"text");
 			setTimeout(newGame,2000);
 		}
+		if(endGame() == 3){
+			stt =new component(0,0,"You win",350,150,"text");
+			setTimeout(newGame,2000);
+		}
 		flag = 0;
 	}
 	function movedown(){
@@ -287,18 +299,28 @@
 			stt.update();
 			setTimeout(newGame,2000);
 		}
+		if(endGame() == 3){
+			stt =new component(0,0,"You win",350,150,"text");
+			setTimeout(newGame,2000);
+		}
 		flag = 0;
 	}
 	function endGame(){
 		var flag = 0;
 		
 		for(var x=0;x<4;x++)
-			for(var y=0;y<4;y++)
+			for(var y=0;y<4;y++){
 				if(arr[x][y] == 0)
 					{
 						flag = 2;	
 						return flag;
 					}
+				if(arr[x][y] == 2048)
+					{
+						flag = 3;
+						return flag;
+					}
+			}
 		for(var x=0;x<4;x++)
 			for(var y=0;y<3;y++)
 				if(arr[x][y] == arr[x][y+1])
@@ -316,6 +338,5 @@
 	}
 		</script>	
 <button onclick="newGame()">NewGane</button>
-<button type="button" visible onclick ="newGame()">TryAgain</button>
 	<body><canvas id = "mycanvas" width = "600" height = "600"></canvas></body>
 	</head></html>

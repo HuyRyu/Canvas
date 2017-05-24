@@ -1,20 +1,22 @@
 <html>
 	<head>
 		<script>
+		var myScore;
+		var score = 0;
+		var stt;
 		window.onload = function(){
 		startGame();
 		}
 		function startGame() {
 		init_array();
-		random();
 		createComponent ();
-    //Hàm startGame() gọi đến method start() của đối tượng myGameArea
-		myGameArea.start();
-		
-		
+		random();
+		myScore =new component(0,0,"Srcore: 0",300,150,"text");
+		myScore.update();		
 };
-	var flag = 0;
-	var core = 0;
+	document.addEventListener("DOMContentLoaded",function(e){
+	myGameArea.start();
+	});
 	var arr = new Array(4);
 		function init_array(){
 			for(var i=0;i<4;i++)
@@ -26,34 +28,35 @@
 			for(var x=0;x<4;x++)
 				for(var y=0;y<4;y++)
 				{	
-					if (arr[x][y] == 0)
-						component(64,64,"0.png",x+x*64+2,y+y*64+2,"image");
-					if (arr[x][y] == 2)
-						component(64,64,"2.png",x+x*64+2,y+y*64+2,"image");
-					if (arr[x][y] == 4)
-						component(64,64,"4.png",x+x*64+2,y+y*64+2,"image");
-					if (arr[x][y] == 8)
-						component(64,64,"8.png",x+x*64+2,y+y*64+2,"image");
-					if (arr[x][y] == 16)
-						component(64,64,"16.png",x+x*64+2,y+y*64+2,"image");
-					if (arr[x][y] == 32)
-						component(64,64,"32.png",x+x*64+2,y+y*64+2,"image");
+					var src = arr[x][y] + ".png"
+					myGamePiece[x*4+y] =new component(64,64,src,x+x*64+2,y+y*64+2,"image");
+					myGamePiece[x*4+y].update();
+				
 				}
 		}
 	var myGameArea = {
    
 		start : function() {
 			var canvas = document.getElementById("mycanvas");
-
+				
 			// nội dung bên trong của vùng không gian này là các thứ được vẽ từ đối tượng getContext("2d")
-			this.context = canvas.getContext("2d");		
-			if(flag == 1)
-				this.interval = setInterval(updateGame,5000);
+			this.context = canvas.getContext("2d");
+			document.addEventListener('keydown', (e) => {
+				if(e.which == 37)
+					moveleft();
+				if(e.which == 39)
+					moveright();
+				if(e.which == 38)
+					moveup();
+				if(e.which == 40)
+					movedown();
+			})
 		},
 		clear : function(){
 			this.context.clearRect(0,0,600,600);
 			flag = 0;
 		}
+		
 		
 	}
 	function random(){
@@ -64,41 +67,78 @@
 			var y = Math.floor(Math.random()*4);
 			}
 		arr[x][y] = 2;
+		myGamePiece[x*4+y].src = "2.png";
+		myGamePiece[x*4+y].update();
 	}
 	function component(width, height, src, x, y,type) {
 		this.width = width;
 		this.height = height;
 		this.x = x;
 		this.y = y;
-		var img = new Image();
-		img.onload = function(){
+		this.src = src;
+		this.update = function(){
 			ctx = myGameArea.context;
-			ctx.drawImage(img,y,x);
-		};
-		img.src = src;	
-	}
-	function updateGame(){
-		
-		random();
-		createComponent();
+			if(type == "image"){
+				var img = new Image();
+				img.onload = function(){
+				ctx.drawImage(img,y,x);
+			};
+			img.src = this.src;	
+		}
+			if(type == "text"){
+				this.text = src;
+				ctx.font = "20px Georgia";
+				ctx.fillText(this.text,this.y,this.x);
+			}
+		}
 	}
 	function moveleft(){
+		var flag = 0;
 		for(var x = 0;x<4;x++)
 				for(var y = 0;y<4;y++)
 					for(var j = y+1;j<4;j++)
 					{
 						if((arr[x][y] == arr[x][j] || arr[x][y] == 0) && arr[x][j]!=0)
 							{
+								if(arr[x][y]!=0 && arr[x][y+1]!=0 && arr[x][y+1]!=arr[x][y])
+									break;
+								if(arr[x][y]==arr[x][j]){
+									arr[x][y]+=arr[x][j];
+									arr[x][j] = 0;
+									score+=arr[x][y];
+									updateScore(score);
+									myGamePiece[x*4+j].src = "0.png";
+									myGamePiece[x*4+j].update();
+									myGamePiece[x*4+y].src = arr[x][y] + ".png";
+									myGamePiece[x*4+y].update();
+									flag = 1;
+									break;
+								}
 								arr[x][y]+=arr[x][j];
 								arr[x][j] = 0;
-								core+=arr[x][y];
-								break;
+								myGamePiece[x*4+j].src = "0.png";
+								myGamePiece[x*4+j].update();
+								myGamePiece[x*4+y].src = arr[x][y] + ".png";
+								myGamePiece[x*4+y].update();
+								flag = 1;
+								if(arr[x][y]!=arr[x][j+1])
+									break;
 							}
 					}
-		random();
-		createComponent();
+		if (flag == 1){
+			if(endGame() == 2)
+				setTimeout(random,200);
+		}
+		console.log(endGame());
+		if(endGame() == 0){
+			stt = new component(0,0,"Can't move",350,150,"text");
+			stt.update();
+			setTimeout(newGame,2000);
+		}
+		flag = 0;
 	}
 	function moveright(){
+		var flag = 0;
 		for(var x = 0;x<4;x++)
 			{
 				for(var y = 3;y>=0;y--)
@@ -107,53 +147,175 @@
 					{
 						if((arr[x][y] == arr[x][j] || arr[x][y] == 0) && arr[x][j]!=0)
 							{
-								arr[x][y]+=arr[x][j];
-								arr[x][j] = 0;
-								core+=arr[x][y];
-								break;
+								if(arr[x][y]!=0 && arr[x][y-1]!=0 && arr[x][y-1]!=arr[x][y])
+									break;
+							
+								if(arr[x][y]==arr[x][j]){
+									arr[x][y]+=arr[x][j];
+									arr[x][j] = 0;
+									score+=arr[x][y];
+									updateScore(score);
+									myGamePiece[x*4+j].src = "0.png";
+									myGamePiece[x*4+j].update();
+									myGamePiece[x*4+y].src = arr[x][y] + ".png";
+									myGamePiece[x*4+y].update();
+									
+									flag = 1;
+									break;
+								}
+									arr[x][y]+=arr[x][j];
+									arr[x][j] = 0;
+									myGamePiece[x*4+j].src = "0.png";
+									myGamePiece[x*4+j].update();
+									myGamePiece[x*4+y].src = arr[x][y] + ".png";
+									myGamePiece[x*4+y].update();
+									flag = 1;
+									if(arr[x][y]!=arr[x][j-1])
+										break;
 							}
+							
 					}
 				}
 			}
-		random();
-		createComponent();
+		if (flag == 1){
+			if(endGame() == 2)
+				setTimeout(random,200);
+		}
+		console.log(endGame());
+		if(endGame() == 0){
+			stt =new component(0,0,"Can't move",350,150,"text");
+			stt.update();
+			setTimeout(newGame,2000);
+		}
+		flag = 0;
 	}
+	function updateScore(score)
+	{
+		myGameArea.clear();
+		createComponent();
+		myScore = new component(0,0,"Srcore: "+score,300,150,"text");
+		myScore.update();
+	}	
 	function moveup(){
+		var flag = 0;
 		for(var y = 0;y<4;y++)
 				for(var x = 0;x<4;x++)
 					for(var j = x+1;j<4;j++)
 					{
 						if((arr[x][y] == arr[j][y] || arr[x][y] == 0) && arr[j][y]!=0)
 							{
+								if(arr[x][y]!=0 && arr[x+1][y]!=0 && arr[x+1][y]!=arr[x][y])
+									break;
+								if(arr[x][y]==arr[j][y]){
+									arr[x][y]+=arr[j][y];
+									arr[j][y] = 0;
+									score+=arr[x][y];
+									updateScore(score);
+									myGamePiece[j*4+y].src = "0.png";
+									myGamePiece[j*4+y].update();
+									myGamePiece[x*4+y].src = arr[x][y] + ".png";
+									myGamePiece[x*4+y].update();
+									flag = 1;
+									break;
+								}
 								arr[x][y]+=arr[j][y];
 								arr[j][y] = 0;
-								core+=arr[x][y];
-								break;
+								myGamePiece[j*4+y].src = "0.png";
+								myGamePiece[j*4+y].update();
+								myGamePiece[x*4+y].src = arr[x][y] + ".png";
+								myGamePiece[x*4+y].update();
+								flag = 1;
+								if(j<3)
+									if(arr[x][y]!=arr[j+1][y])
+										break;
 							}
+							
 					}
-		random();
-		createComponent();
+		if (flag == 1){
+			if(endGame() == 2)
+				setTimeout(random,200);
+		}
+		console.log(endGame());
+		if(endGame() == 0){
+			stt =new component(0,0,"Can't move",350,150,"text");
+			setTimeout(newGame,2000);
+		}
+		flag = 0;
 	}
 	function movedown(){
+		var flag = 0;
 		for(var y = 0;y<4;y++)
 				for(var x = 3;x>=0;x--)
 					for(var j = x-1;j>=0;j--)
 					{
 						if((arr[x][y] == arr[j][y] || arr[x][y] == 0) && arr[j][y]!=0)
 							{
+								if(arr[x][y]!=0 && arr[x-1][y]!=0 && arr[x-1][y]!=arr[x][y])
+									break;
+								if(arr[x][y]==arr[j][y])
+								{
+									arr[x][y]+=arr[j][y];
+									arr[j][y] = 0;
+									score+=arr[x][y];
+									updateScore(score);
+									myGamePiece[j*4+y].src = "0.png";
+									myGamePiece[j*4+y].update();
+									myGamePiece[x*4+y].src = arr[x][y] + ".png";
+									myGamePiece[x*4+y].update();
+									flag = 1;
+									break;
+								}
 								arr[x][y]+=arr[j][y];
 								arr[j][y] = 0;
-								core+=arr[x][y];
-								break;
+								myGamePiece[j*4+y].src = "0.png";
+								myGamePiece[j*4+y].update();
+								myGamePiece[x*4+y].src = arr[x][y] + ".png";
+								myGamePiece[x*4+y].update();
+								flag = 1;
+								if(j>0)
+									if(arr[x][y]!=arr[j-1][y])
+										break;
 							}
 					}
-		random();
-		createComponent();
+		if (flag == 1){
+			if(endGame() == 2)
+				setTimeout(random,200);
+		}
+		console.log(endGame());
+		if(endGame() == 0){
+			stt =new component(0,0,"Can't move",350,150,"text");
+			stt.update();
+			setTimeout(newGame,2000);
+		}
+		flag = 0;
+	}
+	function endGame(){
+		var flag = 0;
+		
+		for(var x=0;x<4;x++)
+			for(var y=0;y<4;y++)
+				if(arr[x][y] == 0)
+					{
+						flag = 2;	
+						return flag;
+					}
+		for(var x=0;x<4;x++)
+			for(var y=0;y<3;y++)
+				if(arr[x][y] == arr[x][y+1])
+					flag = 1;
+		for(var y=0;y<4;y++)
+			for(var x=0;x<3;x++)
+				if(arr[x][y] == arr[x+1][y])
+					flag = 1;
+		return flag;
+	}		
+	function newGame()
+	{
+		myGameArea.clear();
+		startGame();
 	}
 		</script>	
-<button onclick="moveup()">UP</button>
-<button onclick="movedown()">DOWN</button>
-<button onclick="moveleft()">LEFT</button>
-<button onclick="moveright()">RIGHT</button>
+<button onclick="newGame()">NewGane</button>
+<button type="button" visible onclick ="newGame()">TryAgain</button>
 	<body><canvas id = "mycanvas" width = "600" height = "600"></canvas></body>
 	</head></html>
